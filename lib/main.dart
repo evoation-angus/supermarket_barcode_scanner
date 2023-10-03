@@ -5,14 +5,32 @@ import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
-  _MyAppState createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      // Remove the debug banner
+      debugShowCheckedModeBanner: false,
+      title: 'KindaCode.com',
+      theme: ThemeData(
+        primarySwatch: Colors.pink,
+      ),
+      home: const HomeScreen(),
+    );
+  }
 }
 
-class _MyAppState extends State<MyApp> {
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   String _scanBarcode = 'Unknown';
 
   @override
@@ -35,7 +53,6 @@ class _MyAppState extends State<MyApp> {
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
-    if (!mounted) return;
 
     setState(() {
       _scanBarcode = barcodeScanRes;
@@ -43,6 +60,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   bool _isVisible = false;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -82,6 +100,16 @@ class _MyAppState extends State<MyApp> {
                             onPressed: () => scanBarcodeNormal(),
                             child: const Text('Start barcode scan')),
                         const SizedBox(height: 50),
+                        ElevatedButton(
+                            onPressed: () => {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const SecondRoute()),
+                              )
+                            },
+                            child: const Text('Save Code')),
+                        const SizedBox(height: 50),
                         Text('Scan result : $_scanBarcode\n',
                             style: const TextStyle(fontSize: 20)),
                         ElevatedButton(
@@ -104,9 +132,37 @@ class _MyAppState extends State<MyApp> {
                                 value: _scanBarcode,
                                 symbology: Code128(),
                                 showValue: false,
-                              )),
+                              )
+                              ),
                         )
-                      ]));
-            })));
+                      ]
+                      )
+                      );
+            }
+            )
+            )
+            );
+  }
+}
+
+
+class SecondRoute extends StatelessWidget {
+  const SecondRoute({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Second Route'),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Go back!'),
+        ),
+      ),
+    );
   }
 }
