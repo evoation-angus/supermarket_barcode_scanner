@@ -38,6 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_barcode_scanner: ^2.0.0
   syncfusion_flutter_barcodes: ^23.1.38
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

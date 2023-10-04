@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 
@@ -102,12 +103,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 50),
                         ElevatedButton(
                             onPressed: () => {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const SecondRoute()),
-                              )
-                            },
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => SecondRoute(
+                                              barcode: _scanBarcode,
+                                            )),
+                                  )
+                                },
                             child: const Text('Save Code')),
                         const SizedBox(height: 50),
                         Text('Scan result : $_scanBarcode\n',
@@ -132,37 +135,93 @@ class _HomeScreenState extends State<HomeScreen> {
                                 value: _scanBarcode,
                                 symbology: Code128(),
                                 showValue: false,
-                              )
-                              ),
+                              )),
                         )
-                      ]
-                      )
-                      );
-            }
-            )
-            )
-            );
+                      ]));
+            })));
   }
 }
 
+class SecondRoute extends StatefulWidget {
+  const SecondRoute({key, required this.barcode}) : super(key: key);
 
-class SecondRoute extends StatelessWidget {
-  const SecondRoute({super.key});
+  final String barcode;
+
+  _SecondRouteState createState() => _SecondRouteState();
+}
+
+class _SecondRouteState extends State<SecondRoute> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  DateTime _selectedDate = DateTime.now();
+
+  void _presentDatePicker() {
+    // showDatePicker is a pre-made funtion of Flutter
+    showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2020),
+            lastDate: DateTime(2030))
+        .then((pickedDate) {
+      // Check if no date is selected
+      if (pickedDate == null) {
+        return;
+      }
+      setState(() {
+        // using state so that the UI will be rerendered when date is picked
+        _selectedDate = pickedDate;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final String barcode = widget.barcode;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Second Route'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Go back!'),
+        appBar: AppBar(
+          title: const Text('Save fuel code'),
         ),
-      ),
-    );
+        body: Center(
+          child: Flex(
+              direction: Axis.vertical,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(30),
+                  child: Text(
+                    _selectedDate != null
+                        ? DateFormat('dd MMM yyyy').format(_selectedDate)
+                        : 'No date selected!',
+                    style: const TextStyle(fontSize: 30),
+                  ),
+                ),
+                ElevatedButton(
+                    onPressed: _presentDatePicker,
+                    child: const Text('Select Date')),
+                const SizedBox(height: 100),
+                Text('Scan result : $barcode\n'),
+                const SizedBox(height: 50),
+                const TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Discount amount',
+                  ),
+                ),
+                const SizedBox(height: 50),
+                
+
+                // display the selected date
+                
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel'),
+                )
+              ]),
+        ));
   }
 }
