@@ -81,9 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         home: Scaffold(
             appBar: AppBar(
-                title: const Text('Selected Supermarket - New World',
-                    style: TextStyle(color: Colors.white)),
-                backgroundColor: Colors.red.shade800),
+                title: const Text('Saved Fuel Vouchers',
+                    style: TextStyle(color: Colors.black)),
+                backgroundColor: Colors.white),
             body: Builder(builder: (BuildContext context) {
               return Container(
                   alignment: Alignment.center,
@@ -91,11 +91,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       direction: Axis.vertical,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Image.asset(
-                          'assets/new_world.png',
-                          height: 80,
-                          width: 80,
-                        ),
                         const SizedBox(height: 50),
                         ElevatedButton(
                             onPressed: () => scanBarcodeNormal(),
@@ -111,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             )),
                                   )
                                 },
-                            child: const Text('Save Code')),
+                            child: const Text('Add new voucher')),
                         const SizedBox(height: 50),
                         Text('Scan result : $_scanBarcode\n',
                             style: const TextStyle(fontSize: 20)),
@@ -182,7 +177,7 @@ class _SecondRouteState extends State<SecondRoute> {
     final String barcode = widget.barcode;
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Save fuel code'),
+          title: const Text('Save fuel voucher'),
         ),
         body: Center(
           child: Flex(
@@ -192,9 +187,7 @@ class _SecondRouteState extends State<SecondRoute> {
                 Container(
                   padding: const EdgeInsets.all(30),
                   child: Text(
-                    _selectedDate != null
-                        ? DateFormat('dd MMM yyyy').format(_selectedDate)
-                        : 'No date selected!',
+                    'Date:' + DateFormat('dd MMM yyyy').format(_selectedDate),
                     style: const TextStyle(fontSize: 30),
                   ),
                 ),
@@ -204,17 +197,19 @@ class _SecondRouteState extends State<SecondRoute> {
                 const SizedBox(height: 100),
                 Text('Scan result : $barcode\n'),
                 const SizedBox(height: 50),
-                const TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Discount amount',
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Discount amount',
+                    ),
                   ),
                 ),
                 const SizedBox(height: 50),
-                
 
                 // display the selected date
-                
+
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
