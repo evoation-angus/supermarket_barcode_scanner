@@ -4,9 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-import 'package:syncfusion_flutter_barcodes/barcodes.dart';
+//import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 
 void main() => runApp(const MyApp());
+
+class VoucherDetails {
+  final String name;
+  final String branch;
+  final String barcode;
+
+  const VoucherDetails(
+      {required this.name, required this.branch, required this.barcode});
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -18,7 +27,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'KindaCode.com',
       theme: ThemeData(
-        primarySwatch: Colors.pink,
+        primarySwatch: Colors.blue,
       ),
       home: const HomeScreen(),
     );
@@ -28,6 +37,7 @@ class MyApp extends StatelessWidget {
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
+  @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
@@ -40,13 +50,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: "Gas Voucher Scanner",
         theme: ThemeData(
           useMaterial3: true,
 
           // Define the default brightness and colors.
           colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.red.shade800,
+            seedColor: Colors.blue.shade800,
             // ···
             brightness: Brightness.light,
           ),
@@ -55,33 +66,42 @@ class _HomeScreenState extends State<HomeScreen> {
           // text styling for headlines, titles, bodies of text, and more.
         ),
         home: Scaffold(
-            appBar: AppBar(
-                title: const Text('Saved Fuel Vouchers',
-                    style: TextStyle(color: Colors.black)),
-                backgroundColor: Colors.white),
-            body: Builder(builder: (BuildContext context) {
-              return Container(
-                  alignment: Alignment.center,
-                  child: Flex(
-                      direction: Axis.vertical,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        const SizedBox(height: 50),
-                        const SizedBox(height: 50),
-                        ElevatedButton(
-                            onPressed: () => {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const SecondRoute()),
-                                  )
-                                },
-                            child: const Text('Add new voucher')),
-                        const SizedBox(height: 50),
-                        const SizedBox(height: 50),
-                      ]));
-            })));
+          appBar: AppBar(
+              title: const Text('Saved Fuel Vouchers',
+                  style: TextStyle(color: Colors.black)),
+              backgroundColor: Colors.white),
+          body: Builder(builder: (BuildContext context) {
+            return Container(
+                alignment: Alignment.center,
+                child: Flex(
+                    direction: Axis.vertical,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      ElevatedButton(
+                          onPressed: () => {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const SecondRoute()),
+                                )
+                              },
+                          child: const Text('Add new voucher')),
+                      const SizedBox(height: 50),
+                      const SizedBox(height: 50),
+                    ]));
+          }),
+          floatingActionButton: FloatingActionButton(
+            tooltip: 'Add', // used by assistive technologies
+            onPressed: () => {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SecondRoute()),
+              )
+            },
+            child: const Icon(Icons.add),
+          ),
+        ));
   }
 }
 
@@ -97,7 +117,14 @@ class _SecondRouteState extends State<SecondRoute> {
     super.initState();
   }
 
-  String _scanBarcode = 'Unknown';
+  //String _scanBarcode = 'Unknown';
+  //bool _isVisible = false;
+  TextEditingController stationName = TextEditingController();
+  TextEditingController branchName = TextEditingController();
+  TextEditingController discountAmount = TextEditingController();
+  TextEditingController barcodeController = TextEditingController();
+  TextEditingController dateContoller = TextEditingController();
+  //String _dateSelected = '';
 
   Future<void> scanBarcodeNormal() async {
     String barcodeScanRes;
@@ -105,29 +132,38 @@ class _SecondRouteState extends State<SecondRoute> {
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
           '#ff6666', 'Cancel', true, ScanMode.BARCODE);
-      print(barcodeScanRes);
+      //print(barcodeScanRes);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-
-    setState(() {
-      _scanBarcode = barcodeScanRes;
-    });
+    updateTextBoxes(barcodeScanRes);
   }
 
-  bool _isVisible = false;
-
-  DateTime _selectedDate = DateTime.now();
+  void updateTextBoxes(barcode) {
+    String str = barcode;
+    List<String> list = str.split("");
+    String firstTwo = list[0] + list[1];
+    if (firstTwo == "93") {
+      stationName.text = "Tissue Box";
+      branchName.text = "Desk";
+    } else if (firstTwo == "14") {
+      stationName.text = "New World";
+      branchName.text = "Lower Hutt";
+    } else if (firstTwo == "15") {
+      stationName.text = "Pak'n'save";
+      branchName.text = "Lower Hutt";
+    }
+    discountAmount.text = "6c";
+    barcodeController.text = barcode;
+  }
 
   void _presentDatePicker() {
     // showDatePicker is a pre-made funtion of Flutter
+    DateTime dateNow = DateTime.now();
+    DateTime initialDate = dateNow.add(const Duration(days: 6));
     showDatePicker(
             context: context,
-            initialDate: DateTime.now(),
+            initialDate: initialDate,
             firstDate: DateTime(2020),
             lastDate: DateTime(2030))
         .then((pickedDate) {
@@ -135,9 +171,11 @@ class _SecondRouteState extends State<SecondRoute> {
       if (pickedDate == null) {
         return;
       }
+      String newFormat = DateFormat('dd MMM yyyy').format(pickedDate);
+      dateContoller.text = newFormat;
       setState(() {
         // using state so that the UI will be rerendered when date is picked
-        _selectedDate = pickedDate;
+        //_dateSelected = newFormat;
       });
     });
   }
@@ -153,50 +191,97 @@ class _SecondRouteState extends State<SecondRoute> {
               direction: Axis.vertical,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
                   child: TextField(
-                    decoration: InputDecoration(
+                    controller: discountAmount,
+                    readOnly: true,
+                    decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: 'Discount amount',
+                      labelText: 'Discount Amount',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
                   child: TextField(
-                    decoration: InputDecoration(
+                    controller: stationName,
+                    readOnly: true,
+                    decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: 'Station name',
+                      labelText: 'Station name',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
                   child: TextField(
-                    decoration: InputDecoration(
+                    controller: branchName,
+                    readOnly: true,
+                    decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: 'Branch Name',
+                      labelText: 'Branch Name',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
                     ),
                   ),
                 ),
-                Container(
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+                  child: TextField(
+                    controller: barcodeController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Barcode',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+                  child: TextField(
+                    controller: dateContoller,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Expiry Date',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                    ),
+                  ),
+                ),
+                /*Container(
                   padding: const EdgeInsets.all(30),
                   child: Text(
-                    'Expiry Date: ' + DateFormat('dd MMM yyyy').format(_selectedDate),
+                    'Expiry Date: $_dateSelected',
                     style: const TextStyle(fontSize: 25),
                   ),
-                ),
-                ElevatedButton(
-                    onPressed: _presentDatePicker,
-                    child: const Text('Select Date')),
-                const SizedBox(height: 50),
-                ElevatedButton(
-                    onPressed: () => scanBarcodeNormal(),
-                    child: const Text('Start barcode scan')),
-                Text('Scan result : $_scanBarcode\n',
-                    style: const TextStyle(fontSize: 20)),
+                ), */
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      SizedBox(
+                          width: 150,
+                          child: ElevatedButton(
+                              onPressed: _presentDatePicker,
+                              child: const Text('Select Date'))),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                          width: 150,
+                          child: ElevatedButton(
+                              onPressed: () => scanBarcodeNormal(),
+                              child: const Text('Scan Barcode')))
+                    ]),
+
+                const SizedBox(height: 20),
+                /*Text('Scan result : $_scanBarcode\n',
+                    style: const TextStyle(fontSize: 20)),*/
                 /*Visibility(
                   visible: _isVisible,
                   maintainSize: true,
