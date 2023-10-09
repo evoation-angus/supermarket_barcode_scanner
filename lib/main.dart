@@ -25,9 +25,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       // Remove the debug banner
       debugShowCheckedModeBanner: false,
-      title: 'KindaCode.com',
+      title: "Gas Voucher Scanner",
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        useMaterial3: true,
+
+        // Define the default brightness and colors.
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue.shade800,
+          // ···
+          brightness: Brightness.light,
+        ),
+
+        // Define the default `TextTheme`. Use this to specify the default
+        // text styling for headlines, titles, bodies of text, and more.
       ),
       home: const HomeScreen(),
     );
@@ -49,23 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: "Gas Voucher Scanner",
-        theme: ThemeData(
-          useMaterial3: true,
-
-          // Define the default brightness and colors.
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue.shade800,
-            // ···
-            brightness: Brightness.light,
-          ),
-
-          // Define the default `TextTheme`. Use this to specify the default
-          // text styling for headlines, titles, bodies of text, and more.
-        ),
-        home: Scaffold(
+    return Scaffold(
           appBar: AppBar(
               title: const Text('Saved Fuel Vouchers',
                   style: TextStyle(color: Colors.black)),
@@ -73,11 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
           body: Builder(builder: (BuildContext context) {
             return Container(
                 alignment: Alignment.center,
-                child: Flex(
+                child: const Flex(
                     direction: Axis.vertical,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      ElevatedButton(
+                      /*ElevatedButton(
                           onPressed: () => {
                                 Navigator.push(
                                   context,
@@ -86,12 +80,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                           const SecondRoute()),
                                 )
                               },
-                          child: const Text('Add new voucher')),
+                          child: const Text('Add new voucher')),*/
                       const SizedBox(height: 50),
                       const SizedBox(height: 50),
                     ]));
           }),
-          floatingActionButton: FloatingActionButton(
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          floatingActionButton: Padding( 
+            padding: const EdgeInsets.only(bottom: 50.0),
+            child:SizedBox( 
+            width: 65,
+            height: 65,
+            child:FloatingActionButton(
             tooltip: 'Add', // used by assistive technologies
             onPressed: () => {
               Navigator.push(
@@ -100,8 +100,8 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             },
             child: const Icon(Icons.add),
-          ),
-        ));
+          ))),
+        );
   }
 }
 
