@@ -39,6 +39,8 @@ dependencies:
   flutter_barcode_scanner: ^2.0.0
   syncfusion_flutter_barcodes: ^23.1.38
   intl: ^0.18.1
+  sqflite: ^2.3.0
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:

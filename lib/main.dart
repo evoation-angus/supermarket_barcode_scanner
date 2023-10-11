@@ -4,17 +4,83 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:path/path.dart' as Path;
+import 'package:sqflite/sqflite.dart';
 //import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 
-void main() => runApp(const MyApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
+}
 
-class VoucherDetails {
-  final String name;
-  final String branch;
-  final String barcode;
+class Voucher {
+  late final int id;
+  late final String name;
+  late final String branch;
+  late final String expirydate;
 
-  const VoucherDetails(
-      {required this.name, required this.branch, required this.barcode});
+  Voucher(
+      {required this.name,
+      required this.branch,
+      required this.id,
+      required this.expirydate});
+
+  Voucher.fromMap(Map<String, dynamic> result)
+      : id = result["id"],
+        name = result["name"],
+        branch = result["branch"],
+        expirydate = result["expirydate"];
+
+  Map<String, Object> toMap() {
+    return {'id': id, 'name': name, 'branch': branch, "expirydate": expirydate};
+  }
+  int getId(){
+    return id;
+  }
+}
+
+class DataBase {
+  Future<Database> initializedDB() async {
+    String path = await getDatabasesPath();
+    return openDatabase(
+      Path.join(path, 'vouchers.db'),
+      version: 1,
+      onCreate: (Database db, int version) async {
+        await db.execute(
+          "CREATE TABLE vouchers(id INTEGER PRIMARY KEY , name TEXT NOT NULL,branch TEXT NOT NULL, expirydate TEXT NOT NULL)",
+        );
+      },
+    );
+  }
+
+  // insert data
+  Future<int> insertVoucher(List<Voucher> vouchers) async {
+    int result = 0;
+    final Database db = await initializedDB();
+    for (var voucher in vouchers) {
+      result = await db.insert('vouchers', voucher.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+
+    return result;
+  }
+
+  // retrieve data
+  Future<List<Voucher>> retrieveVoucher() async {
+    final Database db = await initializedDB();
+    final List<Map<String, Object?>> queryResult = await db.query('vouchers');
+    return queryResult.map((e) => Voucher.fromMap(e)).toList();
+  }
+
+  // delete user
+  Future<void> deleteVoucher(int id) async {
+    final db = await initializedDB();
+    await db.delete(
+      'vouchers',
+      where: "id = ?",
+      whereArgs: [id],
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -52,66 +118,94 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late DataBase handler;
+
   @override
   void initState() {
+    handler = DataBase();
     super.initState();
+  }
+
+  Future sendToDb(List<Voucher> vouchers) async {
+    return await handler.insertVoucher(vouchers);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-          appBar: AppBar(
-              title: const Text('Saved Fuel Vouchers',
-                  style: TextStyle(color: Colors.black)),
-              backgroundColor: Colors.white),
-          body: Builder(builder: (BuildContext context) {
-            return Container(
-                alignment: Alignment.center,
-                child: const Flex(
-                    direction: Axis.vertical,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      /*ElevatedButton(
-                          onPressed: () => {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const SecondRoute()),
-                                )
-                              },
-                          child: const Text('Add new voucher')),*/
-                      const SizedBox(height: 50),
-                      const SizedBox(height: 50),
-                    ]));
+      appBar: AppBar(
+          title: const Text('Saved Fuel Vouchers',
+              style: TextStyle(color: Colors.black)),
+          backgroundColor: Colors.white),
+      body: FutureBuilder(
+          future: handler.retrieveVoucher(),
+          builder: (context, AsyncSnapshot<List<Voucher>> snapshot) {
+            if (snapshot.hasData) {
+              return ListView.builder(
+                itemCount: snapshot.data?.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Card(
+                    child: ListTile(
+                      title: Text(snapshot.data![index].name + " - " + snapshot.data![index].branch),
+                      subtitle: Text(snapshot.data![index].expirydate + " - " + snapshot.data![index].id.toString()),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          IconButton(icon: const Icon(Icons.delete_forever), color: Colors.red, onPressed: (){}),
+                          IconButton(icon: const Icon(Icons.qr_code), color: Colors.black, onPressed: (){})
+                        ],
+                      ),
+                    ), 
+                  );
+                },
+              );
+            } else {
+              return const Center(child: Text("No vouchers found"));
+            }
           }),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-          floatingActionButton: Padding( 
-            padding: const EdgeInsets.only(bottom: 50.0),
-            child:SizedBox( 
-            width: 65,
-            height: 65,
-            child:FloatingActionButton(
-            tooltip: 'Add', // used by assistive technologies
-            onPressed: () => {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SecondRoute()),
-              )
-            },
-            child: const Icon(Icons.add),
-          ))),
-        );
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+          padding: const EdgeInsets.only(bottom: 50.0),
+          child: SizedBox(
+              width: 65,
+              height: 65,
+              child: FloatingActionButton(
+                tooltip: 'Add', // used by assistive technologies
+                onPressed: () async {
+                  List<Voucher> result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SecondRoute()),
+                  );
+                  if (result.isNotEmpty) {
+                    sendToDb(result);
+                    setState(() {});
+                  }
+                },
+                child: const Icon(Icons.add),
+              ))),
+    );
   }
 }
 
 class SecondRoute extends StatefulWidget {
   const SecondRoute({key}) : super(key: key);
 
+  @override
   _SecondRouteState createState() => _SecondRouteState();
 }
 
 class _SecondRouteState extends State<SecondRoute> {
+  sendVoucher(
+      String barcode, String name, String branch, String expirydate) async {
+    int id = int.parse(barcode);
+    Voucher voucher =
+        Voucher(name: name, branch: branch, id: id, expirydate: expirydate);
+    List<Voucher> vouchers = [voucher];
+    return vouchers;
+    //return await handler.insertVoucher(vouchers);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -119,8 +213,8 @@ class _SecondRouteState extends State<SecondRoute> {
 
   //String _scanBarcode = 'Unknown';
   //bool _isVisible = false;
-  TextEditingController stationName = TextEditingController();
-  TextEditingController branchName = TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController branchController = TextEditingController();
   TextEditingController discountAmount = TextEditingController();
   TextEditingController barcodeController = TextEditingController();
   TextEditingController dateContoller = TextEditingController();
@@ -144,14 +238,14 @@ class _SecondRouteState extends State<SecondRoute> {
     List<String> list = str.split("");
     String firstTwo = list[0] + list[1];
     if (firstTwo == "93") {
-      stationName.text = "Tissue Box";
-      branchName.text = "Desk";
+      nameController.text = "Tissue Box";
+      branchController.text = "Desk";
     } else if (firstTwo == "14") {
-      stationName.text = "New World";
-      branchName.text = "Lower Hutt";
+      nameController.text = "New World";
+      branchController.text = "Lower Hutt";
     } else if (firstTwo == "15") {
-      stationName.text = "Pak'n'save";
-      branchName.text = "Lower Hutt";
+      nameController.text = "Pak'n'save";
+      branchController.text = "Lower Hutt";
     }
     discountAmount.text = "6c";
     barcodeController.text = barcode;
@@ -160,7 +254,7 @@ class _SecondRouteState extends State<SecondRoute> {
   void _presentDatePicker() {
     // showDatePicker is a pre-made funtion of Flutter
     DateTime dateNow = DateTime.now();
-    DateTime initialDate = dateNow.add(const Duration(days: 6));
+    DateTime initialDate = dateNow.add(const Duration(days: 11));
     showDatePicker(
             context: context,
             initialDate: initialDate,
@@ -184,6 +278,13 @@ class _SecondRouteState extends State<SecondRoute> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.orange),
+            onPressed: () {
+              List<Voucher> vouchers = [];
+              Navigator.pop(context, vouchers);
+            },
+          ),
           title: const Text('Add a new voucher'),
         ),
         body: Center(
@@ -208,7 +309,7 @@ class _SecondRouteState extends State<SecondRoute> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
                   child: TextField(
-                    controller: stationName,
+                    controller: nameController,
                     readOnly: true,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -221,7 +322,7 @@ class _SecondRouteState extends State<SecondRoute> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
                   child: TextField(
-                    controller: branchName,
+                    controller: branchController,
                     readOnly: true,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -309,9 +410,12 @@ class _SecondRouteState extends State<SecondRoute> {
 
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pop(
+                        context,
+                        sendVoucher(barcodeController.text, nameController.text,
+                            branchController.text, dateContoller.text));
                   },
-                  child: const Text('Cancel'),
+                  child: const Text('Save'),
                 )
               ]),
         ));
