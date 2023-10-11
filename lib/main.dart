@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:path/path.dart' as Path;
 import 'package:sqflite/sqflite.dart';
-//import 'package:syncfusion_flutter_barcodes/barcodes.dart';
+import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +34,8 @@ class Voucher {
   Map<String, Object> toMap() {
     return {'id': id, 'name': name, 'branch': branch, "expirydate": expirydate};
   }
-  int getId(){
+
+  int getId() {
     return id;
   }
 }
@@ -146,16 +147,75 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemBuilder: (BuildContext context, int index) {
                   return Card(
                     child: ListTile(
-                      title: Text(snapshot.data![index].name + " - " + snapshot.data![index].branch),
-                      subtitle: Text(snapshot.data![index].expirydate + " - " + snapshot.data![index].id.toString()),
+                      title: Text(snapshot.data![index].name +
+                          " - " +
+                          snapshot.data![index].branch),
+                      subtitle: Text(snapshot.data![index].expirydate +
+                          " - " +
+                          snapshot.data![index].id.toString()),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          IconButton(icon: const Icon(Icons.delete_forever), color: Colors.red, onPressed: (){}),
-                          IconButton(icon: const Icon(Icons.qr_code), color: Colors.black, onPressed: (){})
+                          IconButton(
+                              icon: const Icon(Icons.delete_forever),
+                              color: Colors.red,
+                              onPressed: () {
+                                Widget okButton = TextButton(
+                                  child: const Text("Delete"),
+                                  onPressed: () {
+                                    handler.deleteVoucher(
+                                        snapshot.data![index].id);
+                                    setState(() {});
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                                AlertDialog alert = AlertDialog(
+                                  title: const Text("Delete voucher"),
+                                  content: const Text("Are you sure?"),
+                                  actions: [
+                                    okButton,
+                                  ],
+                                );
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return alert;
+                                    });
+                              }),
+                          IconButton(
+                              icon: const Icon(Icons.qr_code),
+                              color: Colors.black,
+                              onPressed: () {
+                                Widget okButton = TextButton(
+                                  child: const Text("Ok"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                                AlertDialog alert = AlertDialog(
+                                  title: Text("My title"),
+                                  content: SizedBox(
+                                      height: 100,
+                                      width: 300,
+                                      child: SfBarcodeGenerator(
+                                        value:
+                                            snapshot.data![index].id.toString(),
+                                        symbology: Code128(),
+                                        showValue: false,
+                                      )),
+                                  actions: [
+                                    okButton,
+                                  ],
+                                );
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return alert;
+                                    });
+                              }),
                         ],
                       ),
-                    ), 
+                    ),
                   );
                 },
               );
