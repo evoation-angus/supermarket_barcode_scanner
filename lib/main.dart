@@ -147,12 +147,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemBuilder: (BuildContext context, int index) {
                   return Card(
                     child: ListTile(
-                      title: Text(snapshot.data![index].name +
-                          " - " +
-                          snapshot.data![index].branch),
-                      subtitle: Text(snapshot.data![index].expirydate +
-                          " - " +
-                          snapshot.data![index].id.toString()),
+                      title: Text("${snapshot.data![index].name} - ${snapshot.data![index].branch}"),
+                      subtitle: Text("${snapshot.data![index].expirydate} - ${snapshot.data![index].id.toString()}"),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
@@ -193,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                 );
                                 AlertDialog alert = AlertDialog(
-                                  title: Text("My title"),
+                                  title: const Text("Barcode"),
                                   content: SizedBox(
                                       height: 100,
                                       width: 300,
@@ -252,7 +248,7 @@ class SecondRoute extends StatefulWidget {
   const SecondRoute({key}) : super(key: key);
 
   @override
-  _SecondRouteState createState() => _SecondRouteState();
+  State<SecondRoute> createState() {return _SecondRouteState();}
 }
 
 class _SecondRouteState extends State<SecondRoute> {
