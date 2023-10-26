@@ -108,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: Text(
                           "${snapshot.data![index].name} - ${snapshot.data![index].branch}"),
                       subtitle: Text(
-                          "${DateFormat('dd MMM yyyy').format(DateTime.parse(snapshot.data![index].expirydate))} - ${formatBarcode(snapshot.data![index].id, 4, 10)}"),
+                          "${DateFormat('dd MMM yyyy').format(DateTime.parse(snapshot.data![index].expirydate))} - ${formatBarcode(snapshot.data![index].id, 5, 14)}"),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                                 AlertDialog alert = AlertDialog(
                                   title: Text(
-                                      "${formatBarcode(snapshot.data![index].id, 4, 7)} - ",
+                                      "${formatBarcode(snapshot.data![index].id, 5, 8)}-${formatBarcode(snapshot.data![index].id, 8, 11)}-${formatBarcode(snapshot.data![index].id, 11, 14)}",
                                       textAlign: TextAlign.center),
                                   content: SizedBox(
                                       height: 100,
