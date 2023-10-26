@@ -37,6 +37,7 @@ class _SecondRouteState extends State<SecondRoute> {
   TextEditingController discountAmount = TextEditingController();
   TextEditingController barcodeController = TextEditingController();
   TextEditingController dateContoller = TextEditingController();
+  String selectedDate = '';
   //String _dateSelected = '';
 
   Future<void> scanBarcodeNormal() async {
@@ -55,14 +56,15 @@ class _SecondRouteState extends State<SecondRoute> {
   void updateTextBoxes(barcode) {
     String str = barcode;
     List<String> list = str.split("");
-    String firstTwo = list[0] + list[1];
-    if (firstTwo == "93") {
+    String locationIdentifier = list[0] + list[1];
+    //String branchIdentifier = list[2] + list[3];
+    if (locationIdentifier == "93") {
       nameController.text = "Tissue Box";
       branchController.text = "Desk";
-    } else if (firstTwo == "14") {
+    } else if (locationIdentifier == "14") {
       nameController.text = "New World";
       branchController.text = "Lower Hutt";
-    } else if (firstTwo == "15") {
+    } else if (locationIdentifier == "15") {
       nameController.text = "Pak'n'save";
       branchController.text = "Lower Hutt";
     }
@@ -77,15 +79,18 @@ class _SecondRouteState extends State<SecondRoute> {
     showDatePicker(
             context: context,
             initialDate: initialDate,
-            firstDate: DateTime(2020),
+            firstDate: DateTime.now(),
             lastDate: DateTime(2030))
         .then((pickedDate) {
       // Check if no date is selected
       if (pickedDate == null) {
         return;
       }
+      selectedDate = pickedDate.toString();
       String newFormat = DateFormat('dd MMM yyyy').format(pickedDate);
       dateContoller.text = newFormat;
+
+      
       setState(() {
         // using state so that the UI will be rerendered when date is picked
         //_dateSelected = newFormat;
@@ -213,7 +218,7 @@ class _SecondRouteState extends State<SecondRoute> {
                                 barcodeController.text,
                                 nameController.text,
                                 branchController.text,
-                                dateContoller.text));
+                                selectedDate));
                       },
                       child: const Text('Save'),
                     )

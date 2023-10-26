@@ -1,16 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_barcodes/barcodes.dart';
 import 'database.dart';
 import 'voucher.dart';
 import 'add_voucher_page.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -51,12 +50,43 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    handler = DataBase();
     super.initState();
+    handler = DataBase();
+    startupQueryDatabase();
+    
+  }
+
+  void startupQueryDatabase() async {
+    List<Voucher> res = await handler.retrieveVoucher();
+    if (res.isNotEmpty) {
+      List<int> deleteList = [];
+      for (int i = 0; i < res.length; i++) {
+        Voucher voucher = res[i];
+        DateTime currentDate = DateTime.now();
+        DateTime voucherDate = DateTime.parse(voucher.expirydate);
+        if (voucherDate.isAfter(currentDate)) {
+          deleteList.add(voucher.id);
+        }
+      }
+      for (int i = 0; i < deleteList.length; i++) {
+        handler.deleteVoucher(deleteList[i]);
+      }
+      setState(() {
+        
+      });
+    }
   }
 
   Future sendToDb(List<Voucher> vouchers) async {
     return await handler.insertVoucher(vouchers);
+  }
+
+  String formatBarcode(int barcode, int to, int from) {
+    String barcodeString = barcode.toString();
+    List<String> splitString = barcodeString.split("");
+
+    String formattedBarcode = splitString.getRange(to, from).join("");
+    return formattedBarcode;
   }
 
   @override
@@ -75,8 +105,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemBuilder: (BuildContext context, int index) {
                   return Card(
                     child: ListTile(
-                      title: Text("${snapshot.data![index].name} - ${snapshot.data![index].branch}"),
-                      subtitle: Text("${snapshot.data![index].expirydate} - ${snapshot.data![index].id.toString()}"),
+                      title: Text(
+                          "${snapshot.data![index].name} - ${snapshot.data![index].branch}"),
+                      subtitle: Text(
+                          "${DateFormat('dd MMM yyyy').format(DateTime.parse(snapshot.data![index].expirydate))} - ${formatBarcode(snapshot.data![index].id, 4, 10)}"),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
@@ -117,7 +149,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                 );
                                 AlertDialog alert = AlertDialog(
-                                  title: const Text("Barcode"),
+                                  title: Text(
+                                      "${formatBarcode(snapshot.data![index].id, 4, 7)} - ",
+                                      textAlign: TextAlign.center),
                                   content: SizedBox(
                                       height: 100,
                                       width: 300,
@@ -166,9 +200,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     setState(() {});
                   }
                 },
-                child: const Icon(Icons.add,),
+                child: const Icon(
+                  Icons.add,
+                ),
               ))),
     );
   }
 }
-
