@@ -57,7 +57,7 @@ class _SecondRouteState extends State<SecondRoute> {
     String str = barcode;
     List<String> list = str.split("");
     String locationIdentifier = list[0] + list[1];
-    //String branchIdentifier = list[2] + list[3];
+    String branchIdentifier = list[2] + list[3];
     if (locationIdentifier == "93") {
       nameController.text = "Tissue Box";
       branchController.text = "Desk";
@@ -66,7 +66,11 @@ class _SecondRouteState extends State<SecondRoute> {
       branchController.text = "Lower Hutt";
     } else if (locationIdentifier == "15") {
       nameController.text = "Pak'n'save";
-      branchController.text = "Lower Hutt";
+      if(branchIdentifier == "07"){
+        branchController.text = "Lower Hutt";
+      } else if(branchIdentifier == "03"){
+        branchController.text = "Petone";
+      }
     }
     discountAmount.text = "6c";
     barcodeController.text = barcode;
