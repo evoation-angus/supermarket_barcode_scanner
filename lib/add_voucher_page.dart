@@ -17,11 +17,16 @@ class SecondRoute extends StatefulWidget {
 class _SecondRouteState extends State<SecondRoute> {
   sendVoucher(
       String barcode, String name, String branch, String expirydate) async {
-    int id = int.parse(barcode);
-    Voucher voucher =
-        Voucher(name: name, branch: branch, id: id, expirydate: expirydate);
-    List<Voucher> vouchers = [voucher];
-    return vouchers;
+    if (barcode.length > 2) {
+      int id = int.parse(barcode);
+      Voucher voucher =
+          Voucher(name: name, branch: branch, id: id, expirydate: expirydate);
+      List<Voucher> vouchers = [voucher];
+      return vouchers;
+    } else {
+      List<Voucher> vouchers = [];
+      return vouchers;
+    }
     //return await handler.insertVoucher(vouchers);
   }
 
@@ -54,26 +59,28 @@ class _SecondRouteState extends State<SecondRoute> {
   }
 
   void updateTextBoxes(barcode) {
-    String str = barcode;
-    List<String> list = str.split("");
-    String locationIdentifier = list[0] + list[1];
-    String branchIdentifier = list[2] + list[3];
-    if (locationIdentifier == "93") {
-      nameController.text = "Tissue Box";
-      branchController.text = "Desk";
-    } else if (locationIdentifier == "14") {
-      nameController.text = "New World";
-      branchController.text = "Lower Hutt";
-    } else if (locationIdentifier == "15") {
-      nameController.text = "Pak'n'save";
-      if(branchIdentifier == "07"){
+    if (int.parse(barcode) != -1) {
+      String str = barcode;
+      List<String> list = str.split("");
+      String locationIdentifier = list[0] + list[1];
+      String branchIdentifier = list[2] + list[3];
+      if (locationIdentifier == "93") {
+        nameController.text = "Tissue Box";
+        branchController.text = "Desk";
+      } else if (locationIdentifier == "14") {
+        nameController.text = "New World";
         branchController.text = "Lower Hutt";
-      } else if(branchIdentifier == "03"){
-        branchController.text = "Petone";
+      } else if (locationIdentifier == "15") {
+        nameController.text = "Pak'n'save";
+        if (branchIdentifier == "07") {
+          branchController.text = "Lower Hutt";
+        } else if (branchIdentifier == "03") {
+          branchController.text = "Petone";
+        }
       }
+      discountAmount.text = "6c";
+      barcodeController.text = barcode;
     }
-    discountAmount.text = "6c";
-    barcodeController.text = barcode;
   }
 
   void _presentDatePicker() {
@@ -94,7 +101,6 @@ class _SecondRouteState extends State<SecondRoute> {
       String newFormat = DateFormat('dd MMM yyyy').format(pickedDate);
       dateContoller.text = newFormat;
 
-      
       setState(() {
         // using state so that the UI will be rerendered when date is picked
         //_dateSelected = newFormat;
@@ -112,7 +118,10 @@ class _SecondRouteState extends State<SecondRoute> {
         },
         child: Scaffold(
             appBar: AppBar(
-              leading: IconButton(
+              leadingWidth: 95,
+              leading: TextButton.icon(
+                 
+                label: const Text("Back", textAlign: TextAlign.center, style: TextStyle(fontSize: 15),),
                 icon: const Icon(Icons.arrow_back_ios_new, color: Colors.blue),
                 onPressed: () {
                   List<Voucher> vouchers = [];
@@ -205,13 +214,30 @@ class _SecondRouteState extends State<SecondRoute> {
                               width: 150,
                               child: ElevatedButton(
                                   onPressed: _presentDatePicker,
-                                  child: const Text('Select Date'))),
+                                  child: const Text.rich(TextSpan(children: [
+                                    WidgetSpan(
+                                        alignment: PlaceholderAlignment.middle,
+                                        child: Icon(Icons.date_range)),
+                                    TextSpan(
+                                      text: " Select Date",
+                                    ),
+                                  ])))),
                           const SizedBox(height: 20),
                           SizedBox(
                               width: 150,
                               child: ElevatedButton(
                                   onPressed: () => scanBarcodeNormal(),
-                                  child: const Text('Scan Barcode')))
+                                  child: const Text.rich(
+                                      textAlign: TextAlign.center,
+                                      TextSpan(children: [
+                                        WidgetSpan(
+                                            alignment:
+                                                PlaceholderAlignment.middle,
+                                            child: Icon(Icons.qr_code_scanner)),
+                                        TextSpan(
+                                          text: " Scan code",
+                                        ),
+                                      ]))))
                         ]),
                     const SizedBox(height: 20),
                     ElevatedButton(
@@ -224,7 +250,14 @@ class _SecondRouteState extends State<SecondRoute> {
                                 branchController.text,
                                 selectedDate));
                       },
-                      child: const Text('Save'),
+                      child: const Text.rich(TextSpan(children: [
+                        WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: Icon(Icons.save_sharp)),
+                        TextSpan(
+                          text: " Save",
+                        ),
+                      ])),
                     )
                   ]),
             )));

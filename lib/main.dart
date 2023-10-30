@@ -52,11 +52,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     handler = DataBase();
-    startupQueryDatabase();
-    
+    /*startupQueryDatabase(); */
   }
 
-  void startupQueryDatabase() async {
+  /*void startupQueryDatabase() async {
     List<Voucher> res = await handler.retrieveVoucher();
     if (res.isNotEmpty) {
       List<int> deleteList = [];
@@ -75,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
         
       });
     }
-  }
+  } */
 
   Future sendToDb(List<Voucher> vouchers) async {
     return await handler.insertVoucher(vouchers);
@@ -83,6 +82,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String formatBarcode(int barcode, int to, int from) {
     String barcodeString = barcode.toString();
+    if (barcodeString.length < 14) {
+      barcodeString += "0";
+    }
     List<String> splitString = barcodeString.split("");
 
     String formattedBarcode = splitString.getRange(to, from).join("");
@@ -100,83 +102,87 @@ class _HomeScreenState extends State<HomeScreen> {
           future: handler.retrieveVoucher(),
           builder: (context, AsyncSnapshot<List<Voucher>> snapshot) {
             if (snapshot.hasData) {
-              return ListView.builder(
-                itemCount: snapshot.data?.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Card(
-                    child: ListTile(
-                      title: Text(
-                          "${snapshot.data![index].name} - ${snapshot.data![index].branch}"),
-                      subtitle: Text(
-                          "${DateFormat('dd MMM yyyy').format(DateTime.parse(snapshot.data![index].expirydate))} - ${formatBarcode(snapshot.data![index].id, 5, 14)}"),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          IconButton(
-                              icon: const Icon(Icons.delete_forever),
-                              color: Colors.red,
-                              onPressed: () {
-                                Widget okButton = TextButton(
-                                  child: const Text("Delete"),
-                                  onPressed: () {
-                                    handler.deleteVoucher(
-                                        snapshot.data![index].id);
-                                    setState(() {});
-                                    Navigator.of(context).pop();
-                                  },
-                                );
-                                AlertDialog alert = AlertDialog(
-                                  title: const Text("Delete voucher"),
-                                  content: const Text("Are you sure?"),
-                                  actions: [
-                                    okButton,
-                                  ],
-                                );
-                                showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return alert;
-                                    });
-                              }),
-                          IconButton(
-                              icon: const Icon(Icons.qr_code),
-                              color: Colors.black,
-                              onPressed: () {
-                                Widget okButton = TextButton(
-                                  child: const Text("Ok"),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                );
-                                AlertDialog alert = AlertDialog(
-                                  title: Text(
-                                      "${formatBarcode(snapshot.data![index].id, 5, 8)}-${formatBarcode(snapshot.data![index].id, 8, 11)}-${formatBarcode(snapshot.data![index].id, 11, 14)}",
-                                      textAlign: TextAlign.center),
-                                  content: SizedBox(
-                                      height: 100,
-                                      width: 300,
-                                      child: SfBarcodeGenerator(
-                                        value:
-                                            snapshot.data![index].id.toString(),
-                                        symbology: Code128(),
-                                        showValue: false,
-                                      )),
-                                  actions: [
-                                    okButton,
-                                  ],
-                                );
-                                showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return alert;
-                                    });
-                              }),
-                        ],
+              if (snapshot.data!.isNotEmpty) {
+                return ListView.builder(
+                  itemCount: snapshot.data?.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Card(
+                      child: ListTile(
+                        title: Text(
+                            "${snapshot.data![index].name} - ${snapshot.data![index].branch}"),
+                        subtitle: Text(
+                            "${DateFormat('dd MMM yyyy').format(DateTime.parse(snapshot.data![index].expirydate))} - ${formatBarcode(snapshot.data![index].id, 5, 14)}"),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            IconButton(
+                                icon: const Icon(Icons.delete_forever),
+                                color: Colors.red,
+                                onPressed: () {
+                                  Widget okButton = TextButton(
+                                    child: const Text("Delete"),
+                                    onPressed: () {
+                                      handler.deleteVoucher(
+                                          snapshot.data![index].id);
+                                      setState(() {});
+                                      Navigator.of(context).pop();
+                                    },
+                                  );
+                                  AlertDialog alert = AlertDialog(
+                                    title: const Text("Delete voucher"),
+                                    content: const Text("Are you sure?"),
+                                    actions: [
+                                      okButton,
+                                    ],
+                                  );
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return alert;
+                                      });
+                                }),
+                            IconButton(
+                                icon: const Icon(Icons.qr_code),
+                                color: Colors.black,
+                                onPressed: () {
+                                  Widget okButton = TextButton(
+                                    child: const Text("Ok"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  );
+                                  AlertDialog alert = AlertDialog(
+                                    title: Text(
+                                        "${formatBarcode(snapshot.data![index].id, 5, 8)}-${formatBarcode(snapshot.data![index].id, 8, 11)}-${formatBarcode(snapshot.data![index].id, 11, 14)}",
+                                        textAlign: TextAlign.center),
+                                    content: SizedBox(
+                                        height: 100,
+                                        width: 300,
+                                        child: SfBarcodeGenerator(
+                                          value: snapshot.data![index].id
+                                              .toString(),
+                                          symbology: Code128(),
+                                          showValue: false,
+                                        )),
+                                    actions: [
+                                      okButton,
+                                    ],
+                                  );
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return alert;
+                                      });
+                                }),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
+                    );
+                  },
+                );
+              } else {
+                return const Center(child: Text("No vouchers found"));
+              }
             } else {
               return const Center(child: Text("No vouchers found"));
             }
